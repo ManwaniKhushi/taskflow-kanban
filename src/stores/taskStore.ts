@@ -58,17 +58,36 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
   activities: [],
 
-  initialize: () => {
-    const storedTasks = localStorage.getItem(TASKS_KEY)
-    const storedActivities = localStorage.getItem(ACTIVITIES_KEY)
+initialize: () => {
+  const storedTasks = localStorage.getItem(TASKS_KEY)
+  const storedActivities = localStorage.getItem(ACTIVITIES_KEY)
 
-    set({
-      tasks: storedTasks ? JSON.parse(storedTasks) : [],
-      activities: storedActivities
-        ? JSON.parse(storedActivities)
-        : [],
-    })
-  },
+  const parsedTasks: Task[] = storedTasks
+    ? JSON.parse(storedTasks)
+    : []
+
+  const validStatuses: TaskStatus[] = [
+    "TODO",
+    "IN_PROGRESS",
+    "REVIEW",
+    "COMPLETED",
+  ]
+
+  const validTasks = parsedTasks.filter((task) =>
+    validStatuses.includes(task.status),
+  )
+
+  const activities: Activity[] = storedActivities
+    ? JSON.parse(storedActivities)
+    : []
+
+  set({
+    tasks: validTasks,
+    activities,
+  })
+
+  saveTasks(validTasks)
+},
 
   createTask: (userId, title, status = "TODO") => {
     const now = new Date().toISOString()
@@ -120,17 +139,19 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         : item,
     )
 
-    const activityType: ActivityType =
-      updates.status === "COMPLETED"
-        ? "COMPLETED_TASK"
-        : "UPDATED_TASK"
+  const activityType: ActivityType =
+  updates.status === "COMPLETED" &&
+  task.status !== "COMPLETED"
+    ? "COMPLETED_TASK"
+    : "UPDATED_TASK"
 
     const activity = createActivity(
       userId,
       activityType,
-      updates.status === "COMPLETED"
-        ? `Completed task "${task.title}"`
-        : `Updated task "${task.title}"`,
+    updates.status === "COMPLETED" &&
+task.status !== "COMPLETED"
+  ? `Completed task "${task.title}"`
+  : `Updated task "${task.title}"`
     )
 
     const activities = [
