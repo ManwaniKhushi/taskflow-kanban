@@ -1,11 +1,15 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
-import { routeTree } from "./routeTree.gen"
+
 import "./index.css"
+import { routeTree } from "./routeTree.gen"
+
 import { useAuthStore } from "@/stores/authStore"
+import { useTaskStore } from "@/stores/taskStore"
 
 useAuthStore.getState().initialize()
+useTaskStore.getState().initialize()
 
 const router = createRouter({
   routeTree,
